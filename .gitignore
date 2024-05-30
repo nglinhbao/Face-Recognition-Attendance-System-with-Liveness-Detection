@@ -4,4 +4,4 @@ __pycache__/pose_detection.cpython-311.pyc
 __pycache__/processing.cpython-311.pyc
 models/embedding_classification.h5
 models/embedding_xception_no_pooling.h5
-models/embedding_metric.h5
+# models/embedding_metric.h5
