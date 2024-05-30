@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Image Similarity Prediction</title>
+</head>
+<body>
+  <h1>Image Similarity Prediction</h1>
+
+  <input type="file" id="image1" accept="image/*" onchange="displayImage(this, 'uploadedImage')">
+
+  <div>
+    <video id="video" width="320" height="240" autoplay></video>
+    <button id="captureBtn" disabled>Capture</button> 
+    <div id="poseStatus"></div> 
+  </div>
+
+  <button onclick="predictSimilarity()">Predict Similarity</button>
+
+  <div id="result"></div>
+
+  <div>
+    <img id="uploadedImage" src="" alt="Uploaded Image" width="200" height="150"> 
+    <img id="capturedImage" src="" alt="Captured Image" width="200" height="150">
+    <img id="cropped_face1" src="" alt="Cropped Face 1" width="100" height="100">
+    <img id="cropped_face2" src="" alt="Cropped Face 2" width="100" height="100">
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const captureBtn = document.getElementById('captureBtn');
+    const poseStatus = document.getElementById('poseStatus'); 
+    let capturedImage = null;
+    let isFrontal = false;
+
+    const captureFrame = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext('2d').drawImage(video, 0, 0);
+          return canvas.toDataURL('image/jpeg');
+        }
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(stream => {
+        video.srcObject = stream;
+
+        const checkPose = () => {
+          const imageData = captureFrame();
+          fetch('/detect_pose', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `image=${encodeURIComponent(imageData)}`
+          })
+          .then(response => response.json())
+          .then(data => {
+            isFrontal = data.is_frontal;
+            // Update button and feedback
+            captureBtn.disabled = !isFrontal; 
+            poseStatus.textContent = isFrontal ? "Frontal face detected" : "Please face the camera directly"; 
+          })
+          .catch(err => console.error("Pose detection error:", err));
+        };
+
+        setInterval(checkPose, 300);
+      })
+      .catch(err => {
+        console.error("Error accessing camera: ", err);
+      });
+
+      function captureScreenshot() {
+        if (isFrontal) {
+          capturedImage = captureFrame();
+          // Display the captured image in the 'capturedImage' element
+          const capturedImgElement = document.getElementById('capturedImage');
+          capturedImgElement.src = capturedImage; 
+        } else {
+          alert("Please make sure your face is frontal before capturing."); 
+        }
+      }
+
+    captureBtn.addEventListener('click', captureScreenshot);
+
+    // Function to display the selected image 
+    function displayImage(input, imgElementId) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById(imgElementId).src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function predictSimilarity() {
+      // Get the image file and captured image
+      const image1File = document.getElementById('image1').files[0];
+
+      if (!image1File || !capturedImage) {
+        alert("Please select an image and capture a photo.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image1', image1File);
+      formData.append('image2', capturedImage); 
+
+      fetch('/predict', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('result').innerHTML = `Similarity Score: ${data.similarity_score}`;
+        document.getElementById('cropped_face1').src = `data:image/jpeg;base64,${data.cropped_face1}`;
+        document.getElementById('cropped_face2').src = `data:image/jpeg;base64,${data.cropped_face2}`;
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("An error occurred. Please try again later.");
+      });
+    }
+  </script>
+</body>
+</html>
