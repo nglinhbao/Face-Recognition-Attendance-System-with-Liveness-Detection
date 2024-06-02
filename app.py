@@ -31,7 +31,7 @@ if not os.path.exists(USER_IMAGES_FOLDER):
 
 target_shape = (200, 200)
 embedding_dim = 256
-model = create_pair_model(embedding, embedding_dim)
+model = create_pair_model(embedding, target_shape)
 
 def get_embedding_path(filename):
     return os.path.join(EMBEDDINGS_FOLDER, filename)
@@ -68,34 +68,37 @@ def handle_login():
     if cropped_face is None:
         return jsonify({'error': 'No face detected in the captured image.'}), 400
 
-    cropped_face_vector = embedding.predict(cropped_face)[0]
-
     max_similarity = 0
     most_similar_user = None
     most_similar_face_base64 = None
 
-    for filename in os.listdir(EMBEDDINGS_FOLDER):
-        if filename.endswith('.npy'):
+    for filename in os.listdir(USER_IMAGES_FOLDER):
+        if filename.endswith('.jpg'):
             username = filename[:-4]
-            user_embedding = load_embedding(filename)
-            if user_embedding is not None:
-                similarity_score = model.predict([tf.expand_dims(cropped_face_vector, axis=0), tf.expand_dims(user_embedding, axis=0)])
+            user_image_path = os.path.join(USER_IMAGES_FOLDER, filename)
+
+            # Load the user image
+            user_image = cv2.imread(user_image_path)
+            user_image = cv2.cvtColor(user_image, cv2.COLOR_BGR2RGB) 
+
+            # Extract the face from the user image
+            user_cropped_face, _ = extract_face(user_image)
+
+            if user_cropped_face is not None:
+                similarity_score = model.predict([cropped_face, user_cropped_face])
+
                 if similarity_score > max_similarity:
                     max_similarity = similarity_score
                     most_similar_user = username
+                    most_similar_face_base64 = base64.b64encode(cv2.imencode('.jpg', cv2.cvtColor(user_image, cv2.COLOR_RGB2BGR))[1]).decode("utf-8")
 
-                    matched_image_path = os.path.join(USER_IMAGES_FOLDER, f"{username}.jpg")
-                    with open(matched_image_path, "rb") as img_file:
-                        matched_image_bytes = img_file.read()
-                        most_similar_face_base64 = base64.b64encode(matched_image_bytes).decode("utf-8")
-
-    threshold = 0.8
+    threshold = 0.9
     print(float(max_similarity))
     if max_similarity > threshold and most_similar_user:
         return jsonify({
             'message': f'Welcome, {most_similar_user}!',
-            'input_face': cropped_face_base64,  # Add input face to response
-            'matched_face': most_similar_face_base64  # Add matched face to response
+            'input_face': cropped_face_base64,
+            'matched_face': most_similar_face_base64
         })
     else:
         return jsonify({'error': 'Face not recognized. Please register.'}), 401
@@ -161,8 +164,9 @@ def detect_pose():
         
         # Return detection result
         is_frontal = predLabelList and predLabelList[0] == 'Frontal'
-
+        
         return jsonify({'is_frontal': str(is_frontal), 'is_real': str(is_real)})
+    
     else:
         return jsonify({'error': 'No image data received'}), 400
     

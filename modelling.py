@@ -12,31 +12,36 @@ from PIL import Image
 import base64
 from pose_detection import predFacePoseCV2
 
-# Load the saved Siamese model (assuming this model outputs embeddings)
-embedding = load_model('models/embedding_metric.h5') 
-target_shape = (200, 200) 
+# Load the saved Siamese model
+embedding = load_model('models/embedding_metric.h5')  # Replace 'embedding_metric.h5' with your actual file name
+target_shape = (200, 200)
 
-# Define the PairDistanceLayer 
+# Define the PairDistanceLayer and create the pair_model
 class PairDistanceLayer(layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def call(self, embedding1, embedding2):
-        distance = 1 - ops.sum(tf.square(tf.subtract(embedding1, embedding2)), -1)
+    def call(self, image1, image2):
+        distance = 1 - ops.sum(tf.square(tf.subtract(image1, image2)), -1)
         return distance
 
-def create_pair_model(embedding_model, embedding_dim): 
-    # Define the input layers - now taking embeddings as input
-    embedding1_input = layers.Input(name="embedding1", shape=(embedding_dim,))
-    embedding2_input = layers.Input(name="embedding2", shape=(embedding_dim,))
 
-    # Apply the PairDistanceLayer directly on embeddings
+def create_pair_model(embedding, target_shape):
+    # Define the input layers
+    image1_input = layers.Input(name="image1", shape=target_shape + (3,))
+    image2_input = layers.Input(name="image2", shape=target_shape + (3,))
+
+    # Assuming 'embedding' and 'resnet' are defined elsewhere
+    embedding1 = embedding(resnet.preprocess_input(image1_input))
+    embedding2 = embedding(resnet.preprocess_input(image2_input))
+
+    # Apply the PairDistanceLayer
     similarity_scores = PairDistanceLayer()(
-        embedding1=embedding1_input, 
-        embedding2=embedding2_input
+        image1=embedding1,
+        image2=embedding2
     )
 
     # Create the model
-    pair_model = Model(inputs=[embedding1_input, embedding2_input], outputs=similarity_scores)
+    pair_model = Model(inputs=[image1_input, image2_input], outputs=similarity_scores)
 
     return pair_model

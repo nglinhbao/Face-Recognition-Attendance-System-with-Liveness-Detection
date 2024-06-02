@@ -72,7 +72,7 @@ def predFacePoseCV2(frame):
     
     for bbox, landmarks, prob in zip(bbox_, landmarks_, prob_):
         if bbox is not None: # To check if we detect a face in the image
-            if prob > 0.9: # To check if the detected face has probability more than 90%, to avoid 
+            if prob > 0.7: # To check if the detected face has probability more than 90%, to avoid 
                 angR = npAngle(landmarks[0], landmarks[1], landmarks[2]) # Calculate the right eye angle
                 angL = npAngle(landmarks[1], landmarks[0], landmarks[2])# Calculate the left eye angle
                 angle_R_List.append(angR)
@@ -91,49 +91,3 @@ def predFacePoseCV2(frame):
         else:
             print('No face detected in the image')
     return landmarks_, angle_R_List, angle_L_List, predLabelList
-
-# def pose_detection():
-#     source = 0
-
-#     # Create a video capture object from the VideoCapture Class.
-#     video_cap = cv2.VideoCapture(0)
-
-#     # Create a named window for the video display.
-#     win_name = 'Video Preview'
-#     cv2.namedWindow(win_name)
-#     video_cadesired_width = 160
-#     desired_height = 160
-#     # dim = (desired_width, desired_height)
-#     left_offset = 20
-#     text_color = (0,0,255)
-#     while True:
-#         if spoofing_detection:
-#             spoofing = True
-#         # Read one frame at a time using the video capture object.
-#         has_frame, frame = video_cap.read()
-#         if not has_frame:
-#             break
-        
-#         landmarks_, angle_R_List, angle_L_List, predLabelList = predFacePoseCV2(frame)
-#         # Annotate each video frame.
-#         visualizeCV2(frame, landmarks_, angle_R_List, angle_L_List, predLabelList)
-#         cv2.imshow(win_name, frame)
-
-#         key = cv2.waitKey(1)
-
-#         # You can use this feature to check if the user selected the `q` key to quit the video stream.
-#         if key == ord('Q') or key == ord('q') or key == 27:
-#             # Exit the loop.
-#             break
-        
-#         if predLabelList:
-#             if predLabelList[0] == "Frontal":
-#                 frontal = True
-#             else:
-#                 frontal = False
-
-#     video_cap.release()
-#     cv2.destroyWindow(win_name)
-
-# pose_detection()
-

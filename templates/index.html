@@ -187,12 +187,6 @@
         .then(data => {
           if (data.error) {
             alert(data.error);
-
-            // Optionally show registration if login fails
-            if (action === 'login') {
-              document.getElementById('loginSection').style.display = 'none';
-              document.getElementById('registerSection').style.display = 'block';
-            }
           } else {
             alert(data.message);
             if (action === 'register' && data.cropped_face){
