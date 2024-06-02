@@ -13,20 +13,14 @@ import base64
 from pose_detection import predFacePoseCV2
 from modelling import target_shape
 
-def preprocess_image(file):
+def preprocess_image(image_data):
     """
     Load the specified file as a JPEG image, preprocess it, resize it to the target shape,
     and normalize it.
     """
-    # Read the image file
-    image_string = file.read()
-    image = tf.image.decode_image(image_string, channels=3, dtype=tf.uint8)
-
-    # Convert image to float32 and resize
-    # image = tf.image.convert_image_dtype(image, tf.float32)
-    # image = tf.image.resize(image, target_shape)
-
-    # Add batch dimension
+    image_data = image_data.split(',')[1]
+    image_bytes = base64.b64decode(image_data)
+    image = tf.image.decode_image(image_bytes, channels=3, dtype=tf.uint8)
     image = tf.expand_dims(image, axis=0)
 
     return image
@@ -59,8 +53,6 @@ def extract_face(image):
 
     cropped_face_tf = tf.image.convert_image_dtype(cropped_face_tf, tf.float32)
     cropped_face_tf = tf.image.resize(cropped_face_tf, target_shape)
-
-    print("Cropped face shape:", cropped_face_tf.shape)
 
     # Encode the cropped face as base64
     shown_image = tf.image.resize(shown_image, target_shape)

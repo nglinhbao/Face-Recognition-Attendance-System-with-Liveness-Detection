@@ -5,7 +5,6 @@ import numpy as np
 import math
 import cv2
 
-
 mtcnn = MTCNN(image_size=160,
               margin=0,
               min_face_size=20,
@@ -17,6 +16,7 @@ mtcnn = MTCNN(image_size=160,
 lineColor = (255, 255, 0)
 
 frontal = False
+spoofing = False
 
 # Landmaeks: [Left Eye], [Right eye], [nose], [left mouth], [right mouth]
 def npAngle(a, b, c):
@@ -92,48 +92,48 @@ def predFacePoseCV2(frame):
             print('No face detected in the image')
     return landmarks_, angle_R_List, angle_L_List, predLabelList
 
-def pose_detection():
-    source = 0
+# def pose_detection():
+#     source = 0
 
-    # Create a video capture object from the VideoCapture Class.
-    video_cap = cv2.VideoCapture(0)
+#     # Create a video capture object from the VideoCapture Class.
+#     video_cap = cv2.VideoCapture(0)
 
-    # Create a named window for the video display.
-    win_name = 'Video Preview'
-    cv2.namedWindow(win_name)
-    video_cadesired_width = 160
-    desired_height = 160
-    # dim = (desired_width, desired_height)
-    left_offset = 20
-    text_color = (0,0,255)
-    while True:
-        # Read one frame at a time using the video capture object.
-        has_frame, frame = video_cap.read()
-        if not has_frame:
-            break
+#     # Create a named window for the video display.
+#     win_name = 'Video Preview'
+#     cv2.namedWindow(win_name)
+#     video_cadesired_width = 160
+#     desired_height = 160
+#     # dim = (desired_width, desired_height)
+#     left_offset = 20
+#     text_color = (0,0,255)
+#     while True:
+#         if spoofing_detection:
+#             spoofing = True
+#         # Read one frame at a time using the video capture object.
+#         has_frame, frame = video_cap.read()
+#         if not has_frame:
+#             break
         
-        landmarks_, angle_R_List, angle_L_List, predLabelList = predFacePoseCV2(frame)
-        # Annotate each video frame.
-        visualizeCV2(frame, landmarks_, angle_R_List, angle_L_List, predLabelList)
-        cv2.imshow(win_name, frame)
+#         landmarks_, angle_R_List, angle_L_List, predLabelList = predFacePoseCV2(frame)
+#         # Annotate each video frame.
+#         visualizeCV2(frame, landmarks_, angle_R_List, angle_L_List, predLabelList)
+#         cv2.imshow(win_name, frame)
 
-        key = cv2.waitKey(1)
+#         key = cv2.waitKey(1)
 
-        # You can use this feature to check if the user selected the `q` key to quit the video stream.
-        if key == ord('Q') or key == ord('q') or key == 27:
-            # Exit the loop.
-            break
+#         # You can use this feature to check if the user selected the `q` key to quit the video stream.
+#         if key == ord('Q') or key == ord('q') or key == 27:
+#             # Exit the loop.
+#             break
         
-        if predLabelList:
-            if predLabelList[0] == "Frontal":
-                frontal = True
-            else:
-                frontal = False
+#         if predLabelList:
+#             if predLabelList[0] == "Frontal":
+#                 frontal = True
+#             else:
+#                 frontal = False
 
-        print(frontal)
-
-    video_cap.release()
-    cv2.destroyWindow(win_name)
+#     video_cap.release()
+#     cv2.destroyWindow(win_name)
 
 # pose_detection()
 
