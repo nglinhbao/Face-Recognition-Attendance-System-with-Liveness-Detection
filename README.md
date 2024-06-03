@@ -30,7 +30,7 @@ The system was trained and evaluated on the face recognition dataset provided fo
 
 ## Running the System
 
-1. **Clone the Repository:** `git clone https://github.com/your-username/your-repository-name.git`
+1. **Clone the Repository:** `git clone https://github.com/nglinhbao/Face-Recognition-Attendance-System-with-Liveness-Detection`
 2. **Install Dependencies:** `pip install -r requirements.txt` 
 3. **Dataset Setup (Optional):**
    * Place the `classification_data` and `verification_data` directories in the project's root directory.
