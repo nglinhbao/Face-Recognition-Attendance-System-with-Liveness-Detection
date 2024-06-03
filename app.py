@@ -73,6 +73,7 @@ def handle_login():
     most_similar_face_base64 = None
 
     for filename in os.listdir(USER_IMAGES_FOLDER):
+        print(filename)
         if filename.endswith('.jpg'):
             username = filename[:-4]
             user_image_path = os.path.join(USER_IMAGES_FOLDER, filename)
@@ -86,6 +87,8 @@ def handle_login():
 
             if user_cropped_face is not None:
                 similarity_score = model.predict([cropped_face, user_cropped_face])
+                print(float(similarity_score))
+
 
                 if similarity_score > max_similarity:
                     max_similarity = similarity_score
@@ -93,7 +96,6 @@ def handle_login():
                     most_similar_face_base64 = base64.b64encode(cv2.imencode('.jpg', cv2.cvtColor(user_image, cv2.COLOR_RGB2BGR))[1]).decode("utf-8")
 
     threshold = 0.9
-    print(float(max_similarity))
     if max_similarity > threshold and most_similar_user:
         return jsonify({
             'message': f'Welcome, {most_similar_user}!',
